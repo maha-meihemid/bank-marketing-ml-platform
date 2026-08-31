@@ -35,6 +35,7 @@ mlartifacts/
 # Model artifacts
 artifacts/*
 !artifacts/.gitkeep
+!artifacts/bank_marketing_model.joblib
 
 # IDE
 .vscode/
