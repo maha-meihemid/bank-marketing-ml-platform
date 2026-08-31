@@ -26,6 +26,7 @@ from sklearn.model_selection import (
     StratifiedKFold,
 )
 from sklearn.pipeline import Pipeline
+from xgboost import XGBClassifier
 
 from bankmarketing.features.build_features import (
     FEATURE_COLUMNS,
@@ -39,7 +40,6 @@ from bankmarketing.training.train import (
     build_preprocessor,
     get_feature_specification,
 )
-from xgboost import XGBClassifier
 
 LOGGER = logging.getLogger(__name__)
 
