@@ -1,0 +1,12 @@
+kaggle:
+  competition: playground-series-s5e8
+
+paths:
+  raw_dir: data/raw
+  processed_dir: data/processed
+  features_dir: data/features
+
+split:
+  test_size: 0.15
+  validation_size: 0.15
+  random_state: 42
