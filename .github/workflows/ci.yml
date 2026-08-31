@@ -1,0 +1,112 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - master
+  push:
+    branches:
+      - develop
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python-quality:
+    name: Python quality and tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run Ruff
+        run: ruff check .
+
+      - name: Run test suite
+        run: pytest -q
+
+  docker-smoke-test:
+    name: Docker build and API smoke test
+    needs: python-quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Build inference image
+        run: docker build --tag bank-marketing-api:ci .
+
+      - name: Start inference container
+        run: >-
+          docker run --detach
+          --name bank-marketing-api
+          --publish 8000:8000
+          bank-marketing-api:ci
+
+      - name: Wait for healthy API
+        shell: bash
+        run: |
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:8000/health; then
+              exit 0
+            fi
+            echo "API not ready yet (attempt ${attempt}/30)"
+            sleep 2
+          done
+
+          echo "API did not become ready in time."
+          exit 1
+
+      - name: Test containerized prediction
+        run: >-
+          curl --fail --silent --show-error
+          --request POST
+          --header "Content-Type: application/json"
+          --data '{
+            "age": 42,
+            "job": "management",
+            "marital": "married",
+            "education": "tertiary",
+            "default": "no",
+            "balance": 1850,
+            "housing": "yes",
+            "loan": "no",
+            "contact": "cellular",
+            "day": 15,
+            "month": "may",
+            "duration": 320,
+            "campaign": 2,
+            "pdays": -1,
+            "previous": 0,
+            "poutcome": "unknown"
+          }'
+          http://127.0.0.1:8000/predict
+
+      - name: Show container logs
+        if: always()
+        run: docker logs bank-marketing-api || true
+
+      - name: Remove inference container
+        if: always()
+        run: docker rm --force bank-marketing-api || true
