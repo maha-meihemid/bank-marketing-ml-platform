@@ -83,3 +83,9 @@ interactive OpenAPI documentation at `http://localhost:8000/docs`.
 Pull requests and pushes targeting `develop` or `master` automatically run
 Ruff, the complete Python test suite, a Docker image build, and containerized
 smoke tests against the health and prediction endpoints.
+
+Run the same Docker smoke test locally from Git Bash:
+
+```bash
+bash scripts/ci/docker_smoke_test.sh
+```
