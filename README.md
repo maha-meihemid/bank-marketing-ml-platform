@@ -2,7 +2,7 @@
 
 # Bank Marketing ML Platform
 
-### From raw Kaggle data to a tested FastAPI inference image
+### End-to-end ML pipeline from Kaggle data to a containerized FastAPI inference service
 
 [![CI](https://github.com/maha-meihemid/bank-marketing-ml-platform/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/maha-meihemid/bank-marketing-ml-platform/actions/workflows/ci.yml)
 [![CD](https://github.com/maha-meihemid/bank-marketing-ml-platform/actions/workflows/cd.yml/badge.svg?branch=master)](https://github.com/maha-meihemid/bank-marketing-ml-platform/actions/workflows/cd.yml)
@@ -12,17 +12,23 @@
 ![AWS ECR](https://img.shields.io/badge/AWS-ECR-FF9900?logo=amazonwebservices&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
-**A portfolio-grade, end-to-end machine learning engineering project for predicting term-deposit subscriptions.**
+**Machine learning system for predicting term-deposit subscriptions from bank marketing campaign data.**
 
 </div>
 
 ---
 
-## Why this project exists
+## Project overview
 
-This repository goes beyond training a model in a notebook. It demonstrates how to turn a binary-classification experiment into a reproducible and testable ML system:
+This project is based on Kaggle's [Playground Series - Season 5, Episode 8: Binary Classification with a Bank Dataset](https://www.kaggle.com/competitions/playground-series-s5e8/overview), which ran from July 31 to August 31, 2025 and is now closed.
 
-- ingest and validate raw competition data;
+The objective is to predict the probability that a bank client will subscribe to a **term deposit** after a marketing campaign. Each observation describes the client and the campaign interaction through features such as age, job, balance, housing and personal loans, contact type, previous campaign history and call duration. The target `y` is binary: whether the client subscribed or not.
+
+The competition uses **ROC-AUC** as its evaluation metric. ROC-AUC evaluates how well the model ranks positive examples above negative ones across all possible classification thresholds. This is particularly useful here because only about **12.1%** of the labelled observations belong to the positive class, making accuracy alone potentially misleading. The model therefore outputs a subscription probability, while the API also exposes a binary prediction using a configurable decision threshold.
+
+The repository implements the complete workflow around this prediction problem:
+
+- ingest and validate the raw competition data;
 - build deterministic preprocessing and feature pipelines;
 - compare Logistic Regression, Random Forest and XGBoost;
 - track experiments with MLflow;
@@ -31,8 +37,6 @@ This repository goes beyond training a model in a notebook. It demonstrates how 
 - package the API as a non-root Docker container;
 - verify code, tests and the running container in CI;
 - publish the production image to Amazon ECR through keyless GitHub OIDC authentication.
-
-The final model predicts whether a customer will subscribe to a bank term deposit and returns both a binary decision and its probability.
 
 ## System overview
 
@@ -75,7 +79,7 @@ The full experimental comparison, selected hyperparameters and limitations are d
 
 ## Quick local demo with Docker
 
-This is the recommended demo path. The validated model artifact is already included, so no dataset download or retraining is required.
+The validated model artifact is included in the repository, so the inference API can be tested locally without downloading the dataset or retraining the model.
 
 ### Requirements
 
@@ -166,7 +170,7 @@ On macOS or Linux, activate the environment with `source .venv/bin/activate` ins
 
 ## Reproduce the complete ML pipeline
 
-This path rebuilds the project from the raw Kaggle competition data. It is intentionally separate from the quick API demo because training and tuning are much more resource-intensive.
+The complete pipeline can also be reproduced from the raw Kaggle competition data. Training and tuning are kept separate from the inference demo because they require additional dependencies and compute.
 
 ### 1. Prepare the environment
 
@@ -187,7 +191,7 @@ $env:PYTHONPATH = "src"
 
 ### 2. Configure Kaggle access
 
-1. Join the Kaggle competition `playground-series-s5e8` and accept its rules.
+1. Open the archived [Kaggle competition page](https://www.kaggle.com/competitions/playground-series-s5e8/overview) and accept the competition rules if Kaggle requests it before allowing data access.
 2. Create a Kaggle API token from your Kaggle account settings.
 3. Place the downloaded `kaggle.json` file in `~/.kaggle/kaggle.json`.
 4. Never commit that credential to Git.
