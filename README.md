@@ -57,3 +57,21 @@ Docker
   |
   v
 AWS
+```
+
+## Run the inference API with Docker
+
+Build the production inference image:
+
+```bash
+docker build -t bank-marketing-api .
+```
+
+Run the container locally:
+
+```bash
+docker run --rm -p 8000:8000 bank-marketing-api
+```
+
+The health endpoint is available at `http://localhost:8000/health` and the
+interactive OpenAPI documentation at `http://localhost:8000/docs`.
